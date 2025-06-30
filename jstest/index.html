@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рогалик - Однокомнатное подземелье</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            border: 1px solid #4cc9f0;
+            box-shadow: 0 0 15px rgba(76, 201, 240, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #4cc9f0;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.7);
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #f72585;
+            margin-bottom: 15px;
+        }
+        
+        .game-layout {
+            display: flex;
+            gap: 25px;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .game-board {
+            border: 2px solid #4361ee;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(67, 97, 238, 0.4);
+            position: relative;
+            background: rgba(10, 15, 35, 0.8);
+        }
+        
+        .field {
+            display: grid;
+            grid-template-columns: repeat(40, 16px);
+            grid-template-rows: repeat(24, 16px);
+            gap: 0;
+            z-index: 2;
+            position: relative;
+        }
+        
+        .tile {
+            width: 16px;
+            height: 16px;
+            position: relative;
+            cursor: default;
+            transition: all 0.2s ease;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+.wall {
+    background: rgba(58, 12, 163, 0.7);
+}
+
+.floor {
+    background: rgba(29, 53, 87, 0.5);
+}
+
+        .entity-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            object-fit: cover;
+        }
+        
+        .health {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: #06d6a0;
+            transition: width 0.3s;
+            z-index: 6;
+        }
+        
+        .info-panel {
+            background: rgba(10, 15, 35, 0.8);
+            border: 2px solid #f72585;
+            border-radius: 8px;
+            padding: 20px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 0 20px rgba(247, 37, 133, 0.3);
+        }
+        
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .stat-value {
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+        
+        .stat-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        h2 {
+            color: #4361ee;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(67, 97, 238, 0.3);
+            border: 1px solid #4361ee;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 0 3px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .controls-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .message-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 120px;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+        
+        .message {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .message:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .health-message {
+            color: #06d6a0;
+        }
+        
+        .damage-message {
+            color: #f72585;
+        }
+        
+        .action-message {
+            color: #4cc9f0;
+        }
+        
+        .enemy-message {
+            color: #ff9e00;
+        }
+        
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button {
+            background: linear-gradient(to right, #4361ee, #3a0ca3);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, #3a0ca3, #4361ee);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.5);
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+            width: 100%;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .game-over h2 {
+            font-size: 3rem;
+            color: #f72585;
+            margin-bottom: 20px;
+        }
+        
+        .game-over p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        
+        .skin-controls {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .skin-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .skin-upload {
+            display: none;
+        }
+        
+        .skin-label {
+            background: rgba(67, 97, 238, 0.3);
+            border: 1px dashed #4361ee;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-align: center;
+            flex: 1;
+            min-width: 140px;
+            transition: all 0.3s;
+        }
+        
+        .skin-label:hover {
+            background: rgba(67, 97, 238, 0.5);
+        }
+        
+        .skin-preview {
+            width: 100%;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .skin-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .skin-preview-text {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+        }
+        
+        .skin-section {
+            margin-bottom: 15px;
+        }
+        
+        .skin-section-title {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #4cc9f0;
+        }
+        
+        @media (max-width: 768px) {
+            .game-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .info-panel {
+                width: 100%;
+                max-width: 500px;
+            }
+            
+            .field {
+                transform: scale(0.8);
+                transform-origin: top left;
+            }
+            
+            .skin-row {
+                flex-direction: column;
+            }
+            
+            .skin-label {
+                width: 100%;
+            }
+        }
+        .field {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+}
+css
+.entity-image {
+    z-index: 10; 
+}
+
+.health {
+    z-index: 11; 
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ОДНОКОМНАТНОЕ ПОДЗЕМЕЛЬЕ</h1>
+            <div class="subtitle">Выживи в огромной комнате, полной опасностей и сокровищ!</div>
+        </header>
+        
+        <div class="game-layout">
+            <div class="game-board">
+                <div class="field" id="gameField"></div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="stats">
+                    <h2>Характеристики Героя</h2>
+                    <div class="stat">
+                        <span>
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="#f72585">
+                                <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
+                            </svg>
+                            Здоровье:
+                        </span>
+                        <span class="stat-value" id="health">100/100</span>
+                    </div>
+                    <div class="stat">
+                        <span>
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="#4cc9f0">
+                                <path d="M6.92,5H5L14,14L15,13.06M19.96,19.12L19.12,19.96C18.73,20.35 18.1,20.35 17.71,19.96L14.59,16.84L11.91,19.5L10.5,18.09L11.92,16.67L3,7.75V3H7.75L16.67,11.92L18.09,10.5L19.5,11.91L16.83,14.58L19.95,17.7C20.35,18.1 20.35,18.73 19.96,19.12Z" />
+                            </svg>
+                            Сила атаки:
+                        </span>
+                        <span class="stat-value" id="attack">10</span>
+                    </div>
+                    <div class="stat">
+                        <span>
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="#4cc9f0">
+                                <path d="M6.92,5H5L14,14L15,13.06M19.96,19.12L19.12,19.96C18.73,20.35 18.1,20.35 17.71,19.96L14.59,16.84L11.91,19.5L10.5,18.09L11.92,16.67L3,7.75V3H7.75L16.67,11.92L18.09,10.5L19.5,11.91L16.83,14.58L19.95,17.7C20.35,18.1 20.35,18.73 19.96,19.12Z" />
+                            </svg>
+                            Собранные мечи:
+                        </span>
+                        <span class="stat-value" id="swords">0</span>
+                    </div>
+                    <div class="stat">
+                        <span>
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="#06d6a0">
+                                <path d="M17,17A5,5 0 0,1 12,22A5,5 0 0,1 7,17C7,15.36 7.79,13.91 9,13V5A3,3 0 0,1 12,2A3,3 0 0,1 15,5V13C16.21,13.91 17,15.36 17,17Z" />
+                            </svg>
+                            Собранные зелья:
+                        </span>
+                        <span class="stat-value" id="potions">0</span>
+                    </div>
+                    <div class="stat">
+                        <span>
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="#ff9e00">
+                                <path d="M15,3H9V5H15V3M17,5H19V7H17V5M15,7H9V9H15V7M17,9H19V11H17V9M15,11H9V13H15V11M17,13H19V15H17V13M15,15H9V17H15V15M17,17H19V19H17V17M7,19V5H5V19H7Z" />
+                            </svg>
+                            Убито врагов:
+                        </span>
+                        <span class="stat-value" id="kills">0</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <h2>Управление</h2>
+                    <div class="controls-row">
+                        <div class="key">W</div>
+                    </div>
+                    <div class="controls-row">
+                        <div class="key">A</div>
+                        <div class="key">S</div>
+                        <div class="key">D</div>
+                    </div>
+                    <div class="controls-row">
+                        <div class="key">ПРОБЕЛ</div>
+                        <span>- Атака</span>
+                    </div>
+                </div>
+                
+                <div class="skin-controls">
+                    <h2>Настройка скинов</h2>
+                    
+                    <div class="skin-section">
+                        <div class="skin-section-title">Персонажи</div>
+                        <div class="skin-row">
+                            <label class="skin-label">
+                                Герой
+                                <input type="file" class="skin-upload" data-type="hero" accept="image/*">
+                                <div class="skin-preview" id="heroPreview">
+                                    <div class="skin-preview-text">Нет изображения</div>
+                                </div>
+                            </label>
+                            <label class="skin-label">
+                                Враг
+                                <input type="file" class="skin-upload" data-type="enemy" accept="image/*">
+                                <div class="skin-preview" id="enemyPreview">
+                                    <div class="skin-preview-text">Нет изображения</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="skin-section">
+                        <div class="skin-section-title">Предметы</div>
+                        <div class="skin-row">
+                            <label class="skin-label">
+                                Меч
+                                <input type="file" class="skin-upload" data-type="sword" accept="image/*">
+                                <div class="skin-preview" id="swordPreview">
+                                    <div class="skin-preview-text">Нет изображения</div>
+                                </div>
+                            </label>
+                            <label class="skin-label">
+                                Зелье
+                                <input type="file" class="skin-upload" data-type="potion" accept="image/*">
+                                <div class="skin-preview" id="potionPreview">
+                                    <div class="skin-preview-text">Нет изображения</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="skin-section">
+                        <div class="skin-section-title">Фон</div>
+                        <div class="skin-row">
+                            <label class="skin-label">
+                                Игровое поле
+                                <input type="file" class="skin-upload" data-type="background" accept="image/*">
+                                <div class="skin-preview" id="backgroundPreview">
+                                    <div class="skin-preview-text">Нет изображения</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="message-box" id="messageBox">
+                    <div class="message">Добро пожаловать в огромное подземелье!</div>
+                    <div class="message">Используйте WASD для движения и ПРОБЕЛ для атаки врагов.</div>
+                    <div class="message">Собирайте зелья для лечения и мечи для усиления атаки.</div>
+                    <div class="message">Вы можете загрузить свои изображения для персонажей и фона!</div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="newGameBtn">Новая игра</button>
+                    <button id="restartBtn">Перезапуск</button>
+                    <button id="resetSkinsBtn">Сбросить скины</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f72585;"></div>
+                <span>Герой</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff9e00;"></div>
+                <span>Враг</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4cc9f0;"></div>
+                <span>Меч (+5 к атаке)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #06d6a0;"></div>
+                <span>Зелье здоровья (+20 HP)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #3a0ca3;"></div>
+                <span>Стена</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="game-over" id="gameOver">
+        <h2>ИГРА ОКОНЧЕНА</h2>
+        <p id="gameOverText">Ваш герой пал в бою! Славный путь воина завершён.</p>
+        <button id="restartGameBtn">Играть снова</button>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Константы игры
+            const WIDTH = 40;
+            const HEIGHT = 24;
+            const TILE_SIZE = 16;
+            
+            // Состояние игры
+            const gameState = {
+                map: [],
+                items: [],
+                entities: [],
+                hero: {
+                    x: 0,
+                    y: 0,
+                    health: 100,
+                    maxHealth: 100,
+                    attack: 10,
+                    swords: 0,
+                    potions: 0,
+                    kills: 0
+                },
+                enemies: [],
+                messages: [],
+                gameOver: false,
+                skins: {
+                    hero: null,
+                    enemy: null,
+                    sword: null,
+                    potion: null,
+                    background: null
+                }
+            };
+            
+            // Инициализация игры
+            function initGame() {
+                gameState.map = [];
+                gameState.items = [];
+                gameState.entities = [];
+                gameState.enemies = [];
+                gameState.messages = [];
+                gameState.gameOver = false;
+                
+                // Восстановление полного здоровья при перезапуске
+                gameState.hero.health = gameState.hero.maxHealth;
+                
+                // Создаем карту, заполненную стенами
+                for (let x = 0; x < WIDTH; x++) {
+                    gameState.map[x] = [];
+                    gameState.items[x] = [];
+                    for (let y = 0; y < HEIGHT; y++) {
+                        gameState.map[x][y] = 1; // 1 - стена
+                        gameState.items[x][y] = null;
+                    }
+                }
+                
+                // Создаем одну большую комнату (оставляя стены по краям)
+                for (let x = 1; x < WIDTH-1; x++) {
+                    for (let y = 1; y < HEIGHT-1; y++) {
+                        gameState.map[x][y] = 0; // 0 - пол
+                    }
+                }
+                
+                // Добавляем случайные стены внутри комнаты
+                addRandomWalls(100); // 100 стен
+                
+                // Размещаем предметы
+                placeItems('sword', 2);
+                placeItems('potion', 10);
+                
+                // Размещаем героя
+                placeHero();
+                
+                // Размещаем врагов
+                placeEnemies(10);
+                
+                // Отрисовываем игровое поле
+                renderGame();
+                
+                // Обновляем UI
+                updateUI();
+                
+                // Добавляем начальное сообщение
+                addMessage("Вы появились в огромном подземелье. Будьте осторожны!", "action-message");
+                addMessage("После смерти здоровье полностью восстанавливается!", "health-message");
+            }
+            
+            // Добавление случайных стен
+            function addRandomWalls(count) {
+                for (let i = 0; i < count; i++) {
+                    let placed = false;
+                    let attempts = 0;
+                    
+                    while (!placed && attempts < 100) {
+                        const x = Math.floor(Math.random() * (WIDTH - 2)) + 1;
+                        const y = Math.floor(Math.random() * (HEIGHT - 2)) + 1;
+                        
+                        // Проверяем, что это пол и нет других объектов
+                        if (gameState.map[x][y] === 0) {
+                            gameState.map[x][y] = 1; // ставим стену
+                            placed = true;
+                        }
+                        attempts++;
+                    }
+                }
+            }
+            
+            // Размещение предметов
+            function placeItems(type, count) {
+                for (let i = 0; i < count; i++) {
+                    let placed = false;
+                    let attempts = 0;
+                    
+                    while (!placed && attempts < 100) {
+                        const x = Math.floor(Math.random() * WIDTH);
+                        const y = Math.floor(Math.random() * HEIGHT);
+                        
+                        if (gameState.map[x][y] === 0 && 
+                            gameState.items[x][y] === null && 
+                            !(gameState.hero.x === x && gameState.hero.y === y)) {
+                            
+                            gameState.items[x][y] = type;
+                            placed = true;
+                        }
+                        attempts++;
+                    }
+                }
+            }
+            
+            // Размещение героя
+            function placeHero() {
+                let placed = false;
+                
+                while (!placed) {
+                    const x = Math.floor(Math.random() * WIDTH);
+                    const y = Math.floor(Math.random() * HEIGHT);
+                    
+                    if (gameState.map[x][y] === 0) {
+                        gameState.hero.x = x;
+                        gameState.hero.y = y;
+                        placed = true;
+                    }
+                }
+            }
+            
+            // Размещение врагов
+            function placeEnemies(count) {
+                for (let i = 0; i < count; i++) {
+                    let placed = false;
+                    let attempts = 0;
+                    
+                    while (!placed && attempts < 100) {
+                        const x = Math.floor(Math.random() * WIDTH);
+                        const y = Math.floor(Math.random() * HEIGHT);
+                        
+                        // Проверяем, что клетка свободна
+                        if (gameState.map[x][y] === 0 && 
+                            !(gameState.hero.x === x && gameState.hero.y === y) &&
+                            !gameState.enemies.some(e => e.x === x && e.y === y)) {
+                            
+                            gameState.enemies.push({
+                                x: x,
+                                y: y,
+                                health: 30,
+                                maxHealth: 30,
+                                attack: 5
+                            });
+                            placed = true;
+                        }
+                        attempts++;
+                    }
+                }
+            }
+            
+            // Отрисовка игрового поля
+function renderGame() {
+    const $field = $('#gameField');
+    $field.empty();
+    
+    // Установка фона для игрового поля
+    if (gameState.skins.background) {
+        $field.css('background-image', `url(${gameState.skins.background})`);
+        $field.css('background-size', 'cover');
+    } else {
+        $field.css('background-image', 'none');
+    }
+    
+    for (let y = 0; y < HEIGHT; y++) {
+        for (let x = 0; x < WIDTH; x++) {
+            const $tile = $('<div class="tile"></div>');
+            
+            if (gameState.map[x][y] === 1) {
+                $tile.addClass('wall');
+            } else {
+                $tile.addClass('floor');
+                
+                if (gameState.items[x][y]) {
+                    if (gameState.items[x][y] === 'sword') {
+                        if (gameState.skins.sword) {
+                            $tile.append(`<img class="entity-image" src="${gameState.skins.sword}" alt="Меч">`);
+                        } else {
+                            $tile.append('<div class="sword"></div>');
+                        }
+                    } else if (gameState.items[x][y] === 'potion') {
+                        if (gameState.skins.potion) {
+                            $tile.append(`<img class="entity-image" src="${gameState.skins.potion}" alt="Зелье">`);
+                        } else {
+                            $tile.append('<div class="potion"></div>');
+                        }
+                    }
+                }
+                
+                if (gameState.hero.x === x && gameState.hero.y === y) {
+                    $tile.addClass('hero');
+                    if (gameState.skins.hero) {
+                        $tile.append(`<img class="entity-image" src="${gameState.skins.hero}" alt="Герой">`);
+                    }
+                    const $health = $(`<div class="health" style="width:${(gameState.hero.health / gameState.hero.maxHealth) * 100}%"></div>`);
+                    $tile.append($health);
+                }
+                
+                const enemy = gameState.enemies.find(e => e.x === x && e.y === y);
+                if (enemy) {
+                    $tile.addClass('enemy');
+                    if (gameState.skins.enemy) {
+                        $tile.append(`<img class="entity-image" src="${gameState.skins.enemy}" alt="Враг">`);
+                    }
+                    const $health = $(`<div class="health" style="width:${(enemy.health / enemy.maxHealth) * 100}%"></div>`);
+                    $tile.append($health);
+                }
+            }
+            
+            $field.append($tile);
+        }
+    }
+}
+            // Обновление интерфейса
+            function updateUI() {
+                $('#health').text(`${gameState.hero.health}/${gameState.hero.maxHealth}`);
+                $('#attack').text(gameState.hero.attack);
+                $('#swords').text(gameState.hero.swords);
+                $('#potions').text(gameState.hero.potions);
+                $('#kills').text(gameState.hero.kills);
+            }
+            
+            // Добавление сообщения
+            function addMessage(text, type) {
+                const $messageBox = $('#messageBox');
+                const $message = $(`<div class="message ${type}">${text}</div>`);
+                
+                $messageBox.append($message);
+                $messageBox.scrollTop($messageBox[0].scrollHeight);
+                
+                // Ограничиваем количество сообщений
+                if ($messageBox.children().length > 20) {
+                    $messageBox.children().first().remove();
+                }
+            }
+            
+            // Движение героя
+            function moveHero(dx, dy) {
+                if (gameState.gameOver) return;
+                
+                const newX = gameState.hero.x + dx;
+                const newY = gameState.hero.y + dy;
+                
+                // Проверяем границы карты
+                if (newX < 0 || newX >= WIDTH || newY < 0 || newY >= HEIGHT) {
+                    return;
+                }
+                
+                // Проверяем, можно ли переместиться (не стена)
+                if (gameState.map[newX][newY] === 0) {
+                    // Проверяем, нет ли врага на клетке
+                    const enemyIndex = gameState.enemies.findIndex(e => e.x === newX && e.y === newY);
+                    if (enemyIndex === -1) {
+                        gameState.hero.x = newX;
+                        gameState.hero.y = newY;
+                        
+                        // Проверяем предметы
+                        checkItems();
+                        
+                        // Двигаем врагов
+                        moveEnemies();
+                        
+                        // Отрисовываем изменения
+                        renderGame();
+                        updateUI();
+                    }
+                }
+            }
+            
+            // Проверка предметов на клетке
+            function checkItems() {
+                const item = gameState.items[gameState.hero.x][gameState.hero.y];
+                
+                if (item) {
+                    if (item === 'potion') {
+                        gameState.hero.health = Math.min(gameState.hero.maxHealth, gameState.hero.health + 20);
+                        gameState.hero.potions++;
+                        addMessage("Вы нашли зелье здоровья! +20 HP", "health-message");
+                    } else if (item === 'sword') {
+                        gameState.hero.attack += 5;
+                        gameState.hero.swords++;
+                        addMessage("Вы нашли меч! +5 к силе атаки", "action-message");
+                    }
+                    
+                    // Удаляем предмет
+                    gameState.items[gameState.hero.x][gameState.hero.y] = null;
+                }
+            }
+            
+            // Атака героя
+            function heroAttack() {
+                if (gameState.gameOver) return;
+                
+                let attacked = false;
+                
+                // Проверяем всех врагов в радиусе 1 клетки
+                for (let i = 0; i < gameState.enemies.length; i++) {
+                    const enemy = gameState.enemies[i];
+                    const dx = Math.abs(enemy.x - gameState.hero.x);
+                    const dy = Math.abs(enemy.y - gameState.hero.y);
+                    
+                    if ((dx <= 1 && dy <= 1) && (dx !== 0 || dy !== 0)) {
+                        enemy.health -= gameState.hero.attack;
+                        attacked = true;
+                        
+                        addMessage(`Вы атаковали врага и нанесли ${gameState.hero.attack} урона!`, "damage-message");
+                        
+                        // Проверяем, убит ли враг
+                        if (enemy.health <= 0) {
+                            gameState.enemies.splice(i, 1);
+                            gameState.hero.kills++;
+                            i--;
+                            addMessage("Враг повержен!", "action-message");
+                        }
+                    }
+                }
+                
+                if (attacked) {
+                    // Двигаем врагов после атаки
+                    moveEnemies();
+                    
+                    // Отрисовываем изменения
+                    renderGame();
+                    updateUI();
+                } else {
+                    addMessage("Нет врагов рядом для атаки", "action-message");
+                }
+            }
+            
+            // Движение врагов
+            function moveEnemies() {
+                for (let i = 0; i < gameState.enemies.length; i++) {
+                    const enemy = gameState.enemies[i];
+                    
+                    // Определяем направление к герою
+                    const dx = gameState.hero.x - enemy.x;
+                    const dy = gameState.hero.y - enemy.y;
+                    
+                    // Случайное движение (50% шанс двигаться в сторону героя)
+                    let moveX = 0;
+                    let moveY = 0;
+                    
+                    if (Math.random() > 0.5) {
+                        // Движение по направлению к герою
+                        if (Math.abs(dx) > Math.abs(dy)) {
+                            moveX = dx > 0 ? 1 : -1;
+                        } else {
+                            moveY = dy > 0 ? 1 : -1;
+                        }
+                    } else {
+                        // Случайное движение
+                        const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+                        const [dirX, dirY] = directions[Math.floor(Math.random() * directions.length)];
+                        moveX = dirX;
+                        moveY = dirY;
+                    }
+                    
+                    const newX = enemy.x + moveX;
+                    const newY = enemy.y + moveY;
+                    
+                    // Проверяем, можно ли переместиться
+                    if (newX >= 0 && newX < WIDTH && newY >= 0 && newY < HEIGHT &&
+                        gameState.map[newX][newY] === 0 && 
+                        !gameState.enemies.some(e => e.x === newX && e.y === newY) &&
+                        !(gameState.hero.x === newX && gameState.hero.y === newY)) {
+                        
+                        enemy.x = newX;
+                        enemy.y = newY;
+                    }
+                    
+                    // Проверяем атаку врага
+                    const distX = Math.abs(enemy.x - gameState.hero.x);
+                    const distY = Math.abs(enemy.y - gameState.hero.y);
+                    
+                    if ((distX <= 1 && distY <= 1) && (distX !== 0 || distY !== 0)) {
+                        gameState.hero.health -= enemy.attack;
+                        addMessage(`Враг атаковал вас и нанес ${enemy.attack} урона!`, "enemy-message");
+                        
+                        // Проверяем смерть героя
+                        if (gameState.hero.health <= 0) {
+                            gameState.hero.health = 0;
+                            gameOver();
+                        }
+                    }
+                }
+            }
+            
+            // Конец игры
+            function gameOver() {
+                gameState.gameOver = true;
+                $('#gameOverText').html(`
+                    Ваш герой пал в бою!<br>
+                    <br>
+                    Итоги:<br>
+                    Убито врагов: ${gameState.hero.kills}<br>
+                    Собрано мечей: ${gameState.hero.swords}<br>
+                    Собрано зелий: ${gameState.hero.potions}
+                `);
+                $('#gameOver').show();
+            }
+            
+            // Загрузка скина
+            function loadSkin(file, type) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    gameState.skins[type] = e.target.result;
+                    addMessage(`Скин для ${getSkinName(type)} успешно загружен!`, "action-message");
+                    renderGame();
+                    
+                    // Сохраняем в localStorage
+                    localStorage.setItem(`roguelike_skin_${type}`, e.target.result);
+                    
+                    // Обновляем превью
+                    updatePreview(type, e.target.result);
+                }
+                
+                reader.readAsDataURL(file);
+            }
+            
+            // Сброс скинов
+            function resetSkins() {
+                gameState.skins = {
+                    hero: null,
+                    enemy: null,
+                    sword: null,
+                    potion: null,
+                    background: null
+                };
+                
+                // Удаляем из localStorage
+                localStorage.removeItem('roguelike_skin_hero');
+                localStorage.removeItem('roguelike_skin_enemy');
+                localStorage.removeItem('roguelike_skin_sword');
+                localStorage.removeItem('roguelike_skin_potion');
+                localStorage.removeItem('roguelike_skin_background');
+                
+                // Обновляем превью
+                updatePreview('hero', null);
+                updatePreview('enemy', null);
+                updatePreview('sword', null);
+                updatePreview('potion', null);
+                updatePreview('background', null);
+                
+                addMessage("Все скины сброшены!", "action-message");
+                renderGame();
+            }
+            
+            // Обновление превью
+            function updatePreview(type, dataUrl) {
+                const previewId = `${type}Preview`;
+                const $preview = $(`#${previewId}`);
+                $preview.empty();
+                
+                if (dataUrl) {
+                    $preview.append(`<img src="${dataUrl}" alt="${type} preview">`);
+                } else {
+                    $preview.append(`<div class="skin-preview-text">Нет изображения</div>`);
+                }
+            }
+            
+            // Получение читаемого имени для типа скина
+            function getSkinName(type) {
+                const names = {
+                    hero: "героя",
+                    enemy: "врага",
+                    sword: "меча",
+                    potion: "зелья",
+                    background: "фона"
+                };
+                return names[type] || type;
+            }
+            
+            // Загрузка сохранённых скинов
+            function loadSavedSkins() {
+                const types = ['hero', 'enemy', 'sword', 'potion', 'background'];
+                
+                types.forEach(type => {
+                    const savedSkin = localStorage.getItem(`roguelike_skin_${type}`);
+                    if (savedSkin) {
+                        gameState.skins[type] = savedSkin;
+                        updatePreview(type, savedSkin);
+                    }
+                });
+            }
+            
+            // Обработка клавиш
+            $(document).on('keydown', function(e) {
+                // Предотвращаем скроллинг при нажатии пробела
+                if (e.key === ' ') {
+                    e.preventDefault();
+                }
+                
+                if (e.key === 'w' || e.key === 'W' || e.key === 'ц' || e.key === 'Ц') {
+                    moveHero(0, -1);
+                } else if (e.key === 'a' || e.key === 'A' || e.key === 'ф' || e.key === 'Ф') {
+                    moveHero(-1, 0);
+                } else if (e.key === 's' || e.key === 'S' || e.key === 'ы' || e.key === 'Ы') {
+                    moveHero(0, 1);
+                } else if (e.key === 'd' || e.key === 'D' || e.key === 'в' || e.key === 'В') {
+                    moveHero(1, 0);
+                } else if (e.key === ' ') {
+                    heroAttack();
+                }
+            });
+            
+            // Кнопки управления
+            $('#newGameBtn').click(initGame);
+            $('#restartBtn').click(initGame);
+            $('#restartGameBtn').click(function() {
+                $('#gameOver').hide();
+                initGame();
+            });
+            
+            // Загрузка скинов
+            $('.skin-upload').change(function() {
+                const file = this.files[0];
+                const type = $(this).data('type');
+                
+                if (file) {
+                    if (file.type.match('image.*')) {
+                        loadSkin(file, type);
+                    } else {
+                        addMessage("Пожалуйста, выберите изображение!", "damage-message");
+                    }
+                }
+                
+                // Сбрасываем значение, чтобы можно было загрузить тот же файл снова
+                this.value = '';
+            });
+            
+            // Сброс скинов
+            $('#resetSkinsBtn').click(resetSkins);
+            
+            // Загрузка сохранённых скинов
+            loadSavedSkins();
+            
+            // Начинаем игру
+            initGame();
+        });
+    </script>
+</body>
+</html>
